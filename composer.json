@@ -1,17 +1,17 @@
 {
     "name": "leyo/rapidussd",
-    "description": ":package_description",
+    "description": "Rapid ussd package for quick ussd development and prototyping",
     "keywords": [
-        "league",
-        ":package_name"
+        "USSD",
+        "Rapidussd"
     ],
     "homepage": "https://github.com/leyo/rapidussd",
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": ":author_email",
-            "homepage": ":author_website",
+            "name": "Leyo",
+            "email": "leo@devs.mobi",
+            "homepage": "www.devs.mobi",
             "role": "Developer"
         }
     ],
