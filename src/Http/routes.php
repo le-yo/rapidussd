@@ -3,7 +3,7 @@
 
 
 //Route::get('ussd', 'UssdController@index');
-Route::controller('ussd', 'leyo\rapidussd\UssdController@index');
+Route::resource('ussd', 'UssdController@index');
 Route::group(['namespace' => 'leyo\rapidussd'], function () {
 
     // Sentinel Session Routes
