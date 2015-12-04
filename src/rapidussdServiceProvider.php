@@ -17,10 +17,10 @@ class rapidussdServiceProvider extends ServiceProvider
             function(){
                 require __DIR__.'/Http/routes.php';
             });
-//        if (! $this->app->routesAreCached()) {
-//            require __DIR__.'/Http/routes.php';
-//        }
         $this->loadViewsFrom(__DIR__.'/resources/views', 'courier');
+        $this->publishes([
+            __DIR__.'/Http/migrations/' => database_path('/migrations')
+        ], 'migrations');
 
     }
 
