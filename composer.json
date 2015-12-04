@@ -16,7 +16,8 @@
         }
     ],
     "classmap": [
-        "src/Http/controllers"
+        "src/Http/controllers",
+        "src/Http/migrations"
     ],
     "require": {
         "illuminate/support": "~5.1",
