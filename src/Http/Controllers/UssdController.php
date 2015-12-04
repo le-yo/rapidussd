@@ -1,6 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\leyo\rapidussd;
+//namespace rapidussd\Controllers;
+namespace leyo\rapidussd\Http\Controllers;
 
 use Illuminate\Http\Request;
 
