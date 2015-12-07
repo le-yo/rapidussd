@@ -17,7 +17,8 @@
     ],
     "classmap": [
         "src/Http/controllers",
-        "src/Http/migrations"
+        "src/Http/migrations",
+        "src/Http/seeds"
     ],
     "require": {
         "illuminate/support": "~5.1",

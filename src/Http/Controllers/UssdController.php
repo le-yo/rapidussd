@@ -17,6 +17,7 @@ class UssdController extends Controller
      */
     public function index()
     {
+        //Sample Data seeds
         echo "hapa";
         exit;
     }
