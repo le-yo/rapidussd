@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use leyo\rapidussd\Http\models\ussd_logs;
+use leyo\rapidussd\Http\models\ussd_menu;
+use leyo\rapidussd\Http\models\ussd_menu_items;
 use leyo\rapidussd\Http\models\ussd_user;
 
 class UssdController extends Controller
@@ -23,49 +25,46 @@ class UssdController extends Controller
         set_time_limit(100);
 
         //get inputs
-        $sessionId   = $_REQUEST["sessionId"];
+        $sessionId = $_REQUEST["sessionId"];
         $serviceCode = $_REQUEST["serviceCode"];
         $phoneNumber = $_REQUEST["phoneNumber"];
-        $text        = $_REQUEST["text"];   //
+        $text = $_REQUEST["text"];   //
 
 
-        $data = ['phone'=>$phoneNumber,'text'=> $text, 'service_code'=>$serviceCode,'session_id'=>$sessionId];
+        $data = ['phone' => $phoneNumber, 'text' => $text, 'service_code' => $serviceCode, 'session_id' => $sessionId];
 
         //log USSD request
         ussd_logs::create($data);
 
         //verify that the user exists
-        $no = substr($phoneNumber,-9);
+        $no = substr($phoneNumber, -9);
 
-        $user = ussd_user::where('phone_no',"0".$no)->orWhere('phone_no',"254".$no)->first();
+        $user = ussd_user::where('phone', "0" . $no)->orWhere('phone', "254" . $no)->first();
 
         if (!$user) {
             //if user phone doesn't exist, we check out if they have been registered to mifos
-            $user = self::verifyPhonefromMifos($no);
-        }
-        if (!$user) {
-            //$response_ussd = "Welcome to Watu Credit".PHP_EOL."Short Term Loans".PHP_EOL."1. Loans: Ksh 1,000 To Ksh 50,000".PHP_EOL."2. Loan Term: 1 Month".PHP_EOL."3. Option To Extend Loan".PHP_EOL."4. Disbursement: Within 24 Hours".PHP_EOL."5. Interest Rate: 10% Per Month".PHP_EOL."6. Fees: None";
-            $response_ussd = "Watu Credit Short Term Loans".PHP_EOL."1. Loans: up-to Ksh 50,000".PHP_EOL."2. Loan Term: 1 Month".PHP_EOL."3. Option To Extend Loan".PHP_EOL."4. Disbursement: Within 24 Hr".PHP_EOL."5. Interest Rate: 10% pm".PHP_EOL."6. Fees: None";
-            $response_sms =  "Watu Credit Short Term Loans".PHP_EOL."1. Loans: up-to Ksh 50,000".PHP_EOL."2. Loan Term: 1 Month".PHP_EOL."3. Option To Extend Loan".PHP_EOL."4. Disbursement: Within 24 Hr".PHP_EOL."5. Interest Rate: 10% pm".PHP_EOL."6. Fees: None".PHP_EOL."Requirements".PHP_EOL."1. ID: National ID".PHP_EOL."2. Group Size: Min. 5 Members".PHP_EOL."3. Guarantee: 4 Group Members".PHP_EOL."Call 0790 000 999 For Registration";
+            $usr = array();
+            $usr['phone'] = "0".$no;
+            $usr['session'] = 0;
+            $usr['progress'] = 0;
+            $usr['confirm_from'] = 0;
+            $usr['menu_item_id'] = 0;
 
-            //$response_sms = "Welcome to Watu Credit".PHP_EOL."Short Term Loan(s)".PHP_EOL."1. Loans: Ksh 1,000 To Ksh 50,000".PHP_EOL."2. Loan Term: 1 Month/Option To Extend".PHP_EOL."3. Disbursement: Within 24 Hours".PHP_EOL."4. Interest Rate: 10% Per Month".PHP_EOL."5. Fees: None".PHP_EOL."Requirements".PHP_EOL."1. Identification: National ID".PHP_EOL."2. Group Size: Minimum 5 Members".PHP_EOL."3. Guarantee: 4 Group Members".PHP_EOL."4. Loan History: Good".PHP_EOL."Call 0729 405 464 For Registration";
-            $notify = new NotifyController();
-            $notify->sendSms($phoneNumber,$response_sms);
-            self::sendResponse($response_ussd,3,$user);
-            exit;
+            $user = ussd_user::create($usr);
         }
 
 
-        if(self::user_is_starting($text)){
+        if (self::user_is_starting($text)) {
             //lets get the home menu
             //reset user
             self::resetUser($user);
             //user authentication
             $message = '';
-            $response = self::authenticateUser($user,$message);
+            //get the home menu
+            $response = self::getMenuAndItems($user,1);
+            self::sendResponse($response, 1, $user);
+        } else {
 
-            self::sendResponse($response,1,$user);
-        }else{
             //message is the latest stuff
             $result = explode("*", $text);
             if (empty($result)) {
@@ -75,109 +74,242 @@ class UssdController extends Controller
                 // move the internal pointer to the end of the array
                 $message = current($result);
             }
-            //store ussd response
 
-
-            //switch based on user session
-//		print_r($user);
-//			exit;
             switch ($user->session) {
 
                 case 0 :
                     //neutral user
                     break;
                 case 1 :
-                    //user authentication
-                    $response = self::authenticateUser($user, $message);
-                    break;
-                case 2 :
-                    $response = self::continueUssdProgress($user,$message);
+                    $response = self::continueUssdMenuProcess($user, $message);
                     //echo "Main Menu";
                     break;
-                case 3 :
+                case 2 :
                     //confirm USSD Process
-                    $response = self::confirmUssdProcess($user,$message);
+                    $response = self::confirmUssdProcess($user, $message);
+                    break;
+                case 3 :
+                    //Go back menu
+                    $response = self::confirmGoBack($user, $message);
                     break;
                 case 4 :
                     //Go back menu
-                    $response = self::confirmGoBack($user,$message);
-                    break;
-                case 5 :
-                    //Go back menu
-                    $response = self::resetPIN($user,$message);
+                    $response = self::resetPIN($user, $message);
                     break;
                 default:
                     break;
             }
 
-            self::sendResponse($response,1,$user);
+            self::sendResponse($response, 1, $user);
+        }
+
+    }
+    //continue USSD Menu Progress
+
+    public function continueUssdMenuProcess($user,$message){
+
+        $menu = ussd_menu::find($user->menu_id);
+
+        //check the user menu
+        switch ($menu->type) {
+            case 0:
+                //authentication mini app
+
+                break;
+            case 1:
+                //continue to another menu
+                $response = self::continueUssdMenu($user,$message,$menu);
+                break;
+            case 2:
+                //continue to a processs
+                $response = self::continueSingleProcess($user,$message,$menu);
+                break;
+            case 3:
+                //infomation mini app
+                //
+                self::infoMiniApp($user,$menu);
+                break;
+            default :
+                self::resetUser($user);
+                $response = "An error occurred";
+                break;
+        }
+
+        return $response;
+
+    }
+    //continue USSD Menu
+    public function continueUssdMenu($user,$message,$menu){
+        //verify response
+        $menu_items = self::getMenuItems($user->menu_id);
+
+        $i = 1;
+        $choice = "";
+        $next_menu_id = 0;
+        foreach ($menu_items as $key => $value) {
+            if(self::validationVariations(trim($message),$i,$value->description)){
+                $choice = $value->id;
+                $next_menu_id = $value->next_menu_id;
+
+                break;
+            }
+            $i++;
+        }
+        if(empty($choice)){
+            //get error, we could not understand your response
+            $response = "We could not understand your response". PHP_EOL;
+
+
+            $i = 1;
+            $response = $menu->title.PHP_EOL;
+            foreach ($menu_items as $key => $value) {
+                $response = $response . $i . ": " . $value->description . PHP_EOL;
+                $i++;
+            }
+
+            return $response;
+            //save the response
+        }else{
+            //there is a selected choice
+            $menu = ussd_menu::find($next_menu_id);
+            //next menu switch
+            $response = self::nextMenuSwitch($user,$menu);
+            return $response;
+        }
+
+    }
+    public function nextMenuSwitch($user,$menu){
+
+//		print_r($menu);
+//		exit;
+        switch ($menu->type) {
+            case 0:
+                //authentication mini app
+
+                break;
+            case 1:
+                //continue to another menu
+                $menu_items = self::getMenuItems($menu->id);
+                $i = 1;
+                $response = $menu->title.PHP_EOL;
+                foreach ($menu_items as $key => $value) {
+                    $response = $response . $i . ": " . $value->description . PHP_EOL;
+                    $i++;
+                }
+
+                $user->menu_id = $menu->id;
+                $user->menu_item_id = 0;
+                $user->progress= 0;
+                //$user->save();
+                //self::continueUssdMenu($user,$message,$menu);
+                break;
+            case 2:
+                //start a process
+//				print_r($menu);
+//				exit;
+                self::storeUssdResponse($user,$menu);
+
+                $response = self::singleProcess($menu,$user,1);
+                return $response;
+
+                break;
+            case 3:
+                self::infoMiniApp($user,$menu);
+                break;
+            default :
+                self::resetUser($user);
+                $response = "An authentication error occurred";
+                break;
+        }
+
+        return $response;
+
+    }
+
+    public function validationVariations($message, $option, $value)
+    {
+        if ((trim(strtolower($message)) == trim(strtolower($value))) || ($message == $option) || ($message == "." . $option) || ($message == $option . ".") || ($message == "," . $option) || ($message == $option . ",")) {
+            return TRUE;
+        } else {
+            return FALSE;
         }
 
     }
 
+    public function sendResponse($response,$type=1,$user=null)
+    {
+        if ($type == 1) {
+            $output = "CON ";
+
+
+        } elseif($type == 2) {
+            $output = "CON ";
+            $response = $response.PHP_EOL."1. Back to main menu".PHP_EOL."2. Log out";
+            $user->session = 4;
+            $user->progress = 0;
+            $user->save();
+        }else{
+            $output = "END ";
+        }
+
+        $output .= $response;
+        header('Content-type: text/plain');
+        echo $output;
+        exit;
+    }
     /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
-    {
-        //
+    public function getMenuAndItems($user,$menu_id){
+        //get main menu
+
+        $user->menu_id = $menu_id;
+        $user->session = 1;
+        $user->progress = 1;
+        $user->save();
+        //get home menu
+        $menu =  ussd_menu::find($menu_id);
+
+        $menu_items = self::getMenuItems($menu_id);
+
+
+        $i = 1;
+        $response = $menu->title.PHP_EOL;
+        foreach ($menu_items as $key => $value) {
+            $response = $response . $i . ": " . $value->description . PHP_EOL;
+            $i++;
+        }
+        return $response;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    //Menu Items Function
+    public static function getMenuItems($menu_id)
     {
-        //
+        $menu_items = ussd_menu_items::whereMenuId($menu_id)->get();
+        return $menu_items;
+    }
+    public function resetUser($user)
+    {
+        $user->session = 0;
+        $user->progress = 0;
+        $user->menu_id = 0;
+        $user->difficulty_level = 0;
+        $user->confirm_from = 0;
+        $user->menu_item_id = 0;
+
+        return $user->save();
+
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+    public function user_is_starting($text)
     {
-        //
+        if (strlen($text) > 0) {
+            return FALSE;
+        } else {
+            return TRUE;
+        }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
 }

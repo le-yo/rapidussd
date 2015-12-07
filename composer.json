@@ -19,7 +19,8 @@
         "src/Http/controllers",
         "src/Http/migrations",
         "src/Http/seeds",
-        "src/Http/models"
+        "src/Http/models",
+        "src/Http/Middleware"
     ],
     "require": {
         "illuminate/support": "~5.1",

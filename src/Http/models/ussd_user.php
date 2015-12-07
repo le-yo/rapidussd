@@ -12,7 +12,7 @@ class ussd_user extends Model {
      *
      * @var array
      */
-    protected $fillable = ['difficulty_level','name','office_id','phone_no','email','session','progress','confirm_from','menu_item_id'];
+    protected $fillable = ['difficulty_level','name','office_id','phone','email','session','progress','confirm_from','menu_item_id'];
 
 
 
