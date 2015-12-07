@@ -15,6 +15,15 @@ Via Composer
 
 ``` bash
 $ composer require leyo/rapidussd
+
+##Publish migrations, controllers, models
+$ php artisan vendor:publish
+
+##migrate
+$ php artisan migrate
+
+##Seed only if you need sample app
+$ php artisan db:seed
 ```
 
 ## Usage
