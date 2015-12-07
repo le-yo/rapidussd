@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use leyo\rapidussd\Http\models\ussd_logs;
+use leyo\rapidussd\Http\models\ussd_user;
 
 class UssdController extends Controller
 {
@@ -36,7 +37,7 @@ class UssdController extends Controller
         //verify that the user exists
         $no = substr($phoneNumber,-9);
 
-        $user = UssdUser::where('phone_no',"0".$no)->orWhere('phone_no',"254".$no)->first();
+        $user = ussd_user::where('phone_no',"0".$no)->orWhere('phone_no',"254".$no)->first();
 
         if (!$user) {
             //if user phone doesn't exist, we check out if they have been registered to mifos
