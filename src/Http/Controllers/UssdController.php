@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use leyo\rapidussd\Http\models\ussd_logs;
 use leyo\rapidussd\Http\models\ussd_menu;
 use leyo\rapidussd\Http\models\ussd_menu_items;
+use leyo\rapidussd\Http\models\ussd_response;
 use leyo\rapidussd\Http\models\ussd_user;
 
 class UssdController extends Controller
@@ -178,6 +179,7 @@ class UssdController extends Controller
         }
 
     }
+
     public function nextMenuSwitch($user,$menu){
 
 //		print_r($menu);
@@ -235,7 +237,14 @@ class UssdController extends Controller
         }
 
     }
+    //store USSD response
+    public function storeUssdResponse($user,$message){
 
+        $data = ['user_id'=>$user->id,'menu_id'=>$user->menu_id,'menu_item_id'=>$user->menu_item_id,'response'=>$message];
+        return ussd_response::create($data);
+
+
+    }
     public function sendResponse($response,$type=1,$user=null)
     {
         if ($type == 1) {
