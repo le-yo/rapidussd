@@ -12,59 +12,60 @@ class MenusTableSeeder extends Seeder
         //menu types type 0 - authentication mini app, Type 1 - another menu mini app, type 2 leads to a process app, 3 gives information directly
         Eloquent::unguard();
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        DB::table('menus')->truncate();
+        DB::table('ussd_menus')->truncate();
 
-        DB::table('menus')->delete();
+        DB::table('ussd_menus')->delete();
 
-        DB::table('menus')->insert(array(
+        DB::table('ussd_menus')->insert(array(
             array(
-                'title' => 'Welcome to Watu Credit',
+                'title' => 'Welcome to Keheala',
                 'is_parent' => 1,
+                'type' => 1,
+                'confirmation_message' => "",
+            ),
+            array(
+                'title' => 'Treatment Verification',
+                'is_parent' => 0,
                 'type' => 2,
                 'confirmation_message' => "",
             ),
             array(
-                'title' => 'Main Menu',
+                'title' => 'Compliance Score',
+                'is_parent' => 0,
+                'type' => 3,
+                'confirmation_message' => "",
+            ),
+            array(
+                'title' => 'TB Info',
                 'is_parent' => 0,
                 'type' => 1,
                 'confirmation_message' => "",
             ),
             array(
-                'title' => 'Apply for Loan',
+                'title' => 'Supporter Chat',
                 'is_parent' => 0,
                 'type' => 2,
-                'confirmation_message' => "Your Watu Credit Loan request has been received and will be processed shortly.",
+                'confirmation_message' => "",
             ),
             array(
-                'title' => 'Loan balance',
+                'title' => 'Ask TB Coordinator',
                 'is_parent' => 0,
-                'type' => 3,
-                'confirmation_message' => "Your outstanding balance is Ksh. 0",
+                'type' => 2,
+                'confirmation_message' => "",
             ),
             array(
-                'title' => 'Repay Loan',
+                'title' => 'Help',
                 'is_parent' => 0,
-                'type' => 3,
-                'confirmation_message' => "Please transfer Ksh. XX to paybill number XXXXXX to pay your loan",
+                'type' => 1,
+                'confirmation_message' => "",
             ),
-            array(
-                'title' => 'Extend Loan:',
-                'is_parent' => 0,
-                'type' => 3,
-                'confirmation_message' => "Sample Statement:".PHP_EOL."1/9/2015 Loan approved - Ksh 10,000".PHP_EOL."2/9/2015 Loan repaid - Ksh. 3000".PHP_EOL."3/9/2015 Loan balance inquiry.",
-            ),
-            array(
-                'title' => 'Mini Statement:',
-                'is_parent' => 0,
-                'type' => 3,
-                'confirmation_message' => "Sample Statement:".PHP_EOL."1/9/2015 Loan approved - Ksh 10,000".PHP_EOL."2/9/2015 Loan repaid - Ksh. 3000".PHP_EOL."3/9/2015 Loan balance inquiry.",
-            ),
-            array(
-                'title' => 'Terms & Conditions:',
-                'is_parent' => 0,
-                'type' => 3,
-                'confirmation_message' => "Visit www.watucredit.com",
-            ),
+//            array(
+//                'title' => 'Repay Loan',
+//                'is_parent' => 0,
+//                'type' => 3,
+//                'confirmation_message' => "Please transfer Ksh. XX to paybill number XXXXXX to pay your loan",
+//            ),
+
 
         ));
     }
