@@ -139,6 +139,98 @@ class UssdController extends Controller
         return $response;
 
     }
+    //info mini app
+
+    public function infoMiniApp($user,$menu){
+
+        echo "infoMiniAppbased on menu_id";
+        exit;
+
+        switch ($menu->id) {
+            case 4:
+                //get the loan balance
+
+                break;
+            case 5:
+
+                break;
+            case 6:
+
+            default :
+                $response = $menu->confirmation_message;
+
+                $notify = new NotifyController();
+                //$notify->sendSms($user->phone_no,$response);
+                //self::resetUser($user);
+                self::sendResponse($response,2,$user);
+
+                break;
+        }
+
+    }
+    //continuation
+    public function continueSingleProcess($user,$message,$menu){
+        //validate input to be numeric
+        $menuItem = menu_items::whereMenuIdAndStep($menu->id,$user->progress)->first();
+
+        $message = str_replace(",","",$message);
+       echo "single process validations based on menu_id";
+        exit;
+
+        switch ($menu->id) {
+            case 4:
+                //get the loan balance
+
+                break;
+            case 5:
+
+                break;
+            case 6:
+
+            default :
+                $response = $menu->confirmation_message;
+
+                $notify = new NotifyController();
+                //$notify->sendSms($user->phone_no,$response);
+                //self::resetUser($user);
+                self::sendResponse($response,2,$user);
+
+                break;
+        }
+
+//        if((is_numeric(trim($message)))&&(1000<=$message)&&($message<=50000)){
+//            //save to the db
+//            self::storeUssdResponse($user,$message);
+//            //check if we have another step
+//            $step = $user->progress + 1;
+//            $menuItem = menu_items::whereMenuIdAndStep($menu->id,$step)->first();
+//            if($menuItem){
+//
+//                $user->menu_item_id = $menuItem->id;
+//                $user->menu_id = $menu->id;
+//                $user->progress = $step;
+//                $user->save();
+//                return $menuItem -> description;
+//            }else{
+//                $response = self::confirmBatch($user,$menu);
+//                return $response;
+//
+//            }
+//
+//        }else{
+//            if((trim($message) < 999) || (trim($message)>50000)){
+//
+//                $response = "Requested Loan amount must be from Ksh 1,000 to Ksh 50,000";
+//
+//            }else{
+//                $response =  "Invalid Amount".PHP_EOL.$menuItem->description;
+//            }
+//
+//        }
+
+        return $response;
+    }
+
     //continue USSD Menu
     public function continueUssdMenu($user,$message,$menu){
         //verify response
@@ -243,6 +335,27 @@ class UssdController extends Controller
         $data = ['user_id'=>$user->id,'menu_id'=>$user->menu_id,'menu_item_id'=>$user->menu_item_id,'response'=>$message];
         return ussd_response::create($data);
 
+
+    }
+
+    //single process
+
+    public function singleProcess($menu, $user,$step) {
+        echo "single process";
+        exit;
+
+        $menuItem = menu_items::whereMenuIdAndStep($menu->id,$step)->first();
+
+        if ($menuItem) {
+            //update user data and next request and send back
+            $user->menu_item_id = $menuItem->id;
+            $user->menu_id = $menu->id;
+            $user->progress = $step;
+            $user->session = 2;
+            $user->save();
+            return $menuItem -> description;
+
+        }
 
     }
     public function sendResponse($response,$type=1,$user=null)
