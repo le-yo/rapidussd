@@ -28,7 +28,7 @@ class rapidussdServiceProvider extends ServiceProvider
             __DIR__.'/Http/Controllers/' => database_path('../app/Http/Controllers')
         ], 'Controllers');
         $this->publishes([
-            __DIR__.'/Http/Controllers/' => database_path('../app/')
+            __DIR__.'/Http/models/' => database_path('../app/')
         ], 'Models');
 
     }
