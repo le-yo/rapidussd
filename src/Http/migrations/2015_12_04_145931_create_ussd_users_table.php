@@ -33,6 +33,6 @@ class CreateUssdUsersTable extends Migration
      */
     public function down()
     {
-        Schema::drop('ussd_users');
+        Schema::drop('rapidussd_users');
     }
 }

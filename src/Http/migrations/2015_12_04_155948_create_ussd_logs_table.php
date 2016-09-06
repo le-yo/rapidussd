@@ -30,6 +30,6 @@ class CreateUssdLogsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('ussd_logs');
+        Schema::drop('rapidussd_logs');
     }
 }

@@ -30,7 +30,7 @@ class CreateUssdMenusTable extends Migration
      */
     public function down()
     {
-        Schema::drop('ussd_menus');
+        Schema::drop('rapidussd_menus');
     }
 
 }

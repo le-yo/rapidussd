@@ -30,6 +30,6 @@ class CreateUssdResponsesTable extends Migration
      */
     public function down()
     {
-        Schema::drop('ussd_responses');
+        Schema::drop('rapidussd_responses');
     }
 }

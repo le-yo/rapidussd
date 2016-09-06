@@ -18,7 +18,7 @@ class CreateUssdMenuItemsTable extends Migration
             $table->integer('menu_id')->unsigned();
             $table->foreign('menu_id')
                 ->references('id')
-                ->on('menus')
+                ->on('rapidussd_menus')
                 ->onDelete('cascade');
             $table->string('description');
             $table->integer('type')->default(0);
@@ -36,6 +36,6 @@ class CreateUssdMenuItemsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('ussd_menu_items');
+        Schema::drop('rapidussd_menu_items');
     }
 }
