@@ -22,8 +22,6 @@ class UssdController extends Controller
     public function index()
     {
 
-        echo "Help us";
-        exit;
         error_reporting(0);
         header('Content-type: text/plain');
         set_time_limit(100);
@@ -36,7 +34,8 @@ class UssdController extends Controller
 
 
         $data = ['phone' => $phoneNumber, 'text' => $text, 'service_code' => $serviceCode, 'session_id' => $sessionId];
-
+        print_r($data);
+        exit;
         //log USSD request
         ussd_logs::create($data);
 
