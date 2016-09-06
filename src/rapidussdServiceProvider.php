@@ -11,6 +11,12 @@ class rapidussdServiceProvider extends ServiceProvider
      *
      * @return void
      */
+    protected $commands = [
+        'leyo\rapidussd\Console\Commands\Install',
+    ];
+
+
+
     public function boot()
     {
         $this->app->router->group(['namespace' => 'leyo\rapidussd\Http\Controllers'],
@@ -41,5 +47,6 @@ class rapidussdServiceProvider extends ServiceProvider
     public function register()
     {
         //
+        $this->commands($this->commands);
     }
 }
