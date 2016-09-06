@@ -21,7 +21,6 @@ class UssdController extends Controller
      */
     public function index()
     {
-
         error_reporting(0);
         header('Content-type: text/plain');
         set_time_limit(100);
@@ -56,15 +55,22 @@ class UssdController extends Controller
             $user = ussd_user::create($usr);
         }
 
-
         if (self::user_is_starting($text)) {
             //lets get the home menu
             //reset user
             self::resetUser($user);
             //user authentication
             $message = '';
+
+            $realuser = User::whereEmail("0" . $no."@agin.com")->first();
+            if($realuser){
+                $response = self::getMenuAndItems($user,2);
+            }else{
+                $menu = ussd_menu::find(1);
+                $response = "Registration:".PHP_EOL.self::singleProcess($menu,$user,1);
+            }
+
             //get the home menu
-            $response = self::getMenuAndItems($user,1);
             self::sendResponse($response, 1, $user);
         } else {
 
@@ -97,7 +103,7 @@ class UssdController extends Controller
                     break;
                 case 4 :
                     //Go back menu
-                    $response = self::resetPIN($user, $message);
+                    $response = self::confirmGoBack($user, $message);
                     break;
                 default:
                     break;
@@ -107,6 +113,125 @@ class UssdController extends Controller
         }
 
     }
+
+    //confirm go back
+    public function confirmGoBack($user, $message)
+    {
+
+        if (self::validationVariations($message, 1, "yes")) {
+            //go back to the main menu
+            self::resetUser($user);
+
+            $user->menu_id = 2;
+            $user->session = 1;
+            $user->progress = 1;
+            $user->save();
+            //get home menu
+            $menu = ussd_menu::find(2);
+            $menu_items = self::getMenuItems($menu->id);
+            $i = 1;
+            $response = $menu->title . PHP_EOL;
+            foreach ($menu_items as $key => $value) {
+                $response = $response . $i . ": " . $value->description . PHP_EOL;
+                $i++;
+            }
+            self::sendResponse($response, 1, $user);
+            exit;
+
+        } elseif (self::validationVariations($message, 2, "no")) {
+            $response = "Thank you for using our service";
+            self::sendResponse($response, 3, $user);
+
+        } else {
+            $response = '';
+            self::sendResponse($response, 2, $user);
+            exit;
+        }
+
+    }
+
+
+    //confirmUssdProcess
+    public function confirmUssdProcess($user, $message)
+    {
+        $menu = ussd_menu::find($user->menu_id);
+        if (self::validationVariations($message, 1, "yes")) {
+            //if confirmed
+
+            if (self::postUssdConfirmationProcess($user)) {
+                $response = $menu->confirmation_message;
+            } else {
+                $response = "We had a problem processing your request. Please contact Watu Credit Customer Care on 0790 000 999";
+            }
+
+            self::resetUser($user);
+            self::sendResponse($response, 2, $user);
+
+        } elseif (self::validationVariations($message, 2, "no")) {
+            $response = self::nextMenuSwitch($user, $menu);
+            return $response;
+
+        } else {
+            //not confirmed
+            $response = "We could not understand your response";
+            //restart the process
+            $output = self::confirmBatch($user, $menu);
+
+            $response = $response . PHP_EOL . $output;
+            return $response;
+        }
+
+
+    }
+
+    //post ussd confirmation, define your processes
+
+    public function postUssdConfirmationProcess($user)
+    {
+
+        switch ($user->confirm_from) {
+            case 1:
+                $no = substr($user->phone, -9);
+
+                $data['email'] = "0".$no."@agin.com";
+
+                User::create($data);
+                return true;
+                break;
+
+            default :
+                return true;
+                break;
+        }
+
+    }
+
+
+    //confirm batch
+    public function confirmBatch($user, $menu)
+    {
+        //confirm this stuff
+        $menu_items = self::getMenuItems($user->menu_id);
+
+        $confirmation = "Confirm: " . $menu->title;
+        $amount = 0;
+        foreach ($menu_items as $key => $value) {
+
+            $response = ussd_response::whereUserIdAndMenuIdAndMenuItemId($user->id, $user->menu_id, $value->id)->orderBy('id', 'DESC')->first();
+
+            $confirmation = $confirmation . PHP_EOL . $value->confirmation_phrase . ": " . $response->response;
+            $amount = $response->response;
+        }
+        $response = $confirmation . PHP_EOL . "1. Yes" . PHP_EOL . "2. No";
+
+        $user->session = 2;
+        $user->confirm_from = $user->menu_id;
+        $user->save();
+
+        return $response;
+    }
+
+
     //continue USSD Menu Progress
 
     public function continueUssdMenuProcess($user,$message){
@@ -173,62 +298,29 @@ class UssdController extends Controller
     //continuation
     public function continueSingleProcess($user,$message,$menu){
         //validate input to be numeric
-        $menuItem = menu_items::whereMenuIdAndStep($menu->id,$user->progress)->first();
-
+        $menuItem = ussd_menu_items::whereMenuIdAndStep($menu->id,$user->progress)->first();
         $message = str_replace(",","",$message);
-       echo "single process validations based on menu_id";
-        exit;
 
         switch ($menu->id) {
-            case 4:
-                //get the loan balance
-
-                break;
-            case 5:
-
-                break;
-            case 6:
-
             default :
-                $response = $menu->confirmation_message;
+                self::storeUssdResponse($user,$message);
+                //check if we have another step
+                $step = $user->progress + 1;
+                $menuItem = ussd_menu_items::whereMenuIdAndStep($menu->id,$step)->first();
+                if($menuItem){
 
-                $notify = new NotifyController();
-                //$notify->sendSms($user->phone_no,$response);
-                //self::resetUser($user);
-                self::sendResponse($response,2,$user);
+                    $user->menu_item_id = $menuItem->id;
+                    $user->menu_id = $menu->id;
+                    $user->progress = $step;
+                    $user->save();
+                    return $menuItem -> description;
+                }else{
+                    $response = self::confirmBatch($user,$menu);
+                    return $response;
 
+                }
                 break;
         }
-
-//        if((is_numeric(trim($message)))&&(1000<=$message)&&($message<=50000)){
-//            //save to the db
-//            self::storeUssdResponse($user,$message);
-//            //check if we have another step
-//            $step = $user->progress + 1;
-//            $menuItem = menu_items::whereMenuIdAndStep($menu->id,$step)->first();
-//            if($menuItem){
-//
-//                $user->menu_item_id = $menuItem->id;
-//                $user->menu_id = $menu->id;
-//                $user->progress = $step;
-//                $user->save();
-//                return $menuItem -> description;
-//            }else{
-//                $response = self::confirmBatch($user,$menu);
-//                return $response;
-//
-//            }
-//
-//        }else{
-//            if((trim($message) < 999) || (trim($message)>50000)){
-//
-//                $response = "Requested Loan amount must be from Ksh 1,000 to Ksh 50,000";
-//
-//            }else{
-//                $response =  "Invalid Amount".PHP_EOL.$menuItem->description;
-//            }
-//
-//        }
 
         return $response;
     }
@@ -296,7 +388,7 @@ class UssdController extends Controller
                 $user->menu_id = $menu->id;
                 $user->menu_item_id = 0;
                 $user->progress= 0;
-                //$user->save();
+                $user->save();
                 //self::continueUssdMenu($user,$message,$menu);
                 break;
             case 2:
@@ -343,17 +435,15 @@ class UssdController extends Controller
     //single process
 
     public function singleProcess($menu, $user,$step) {
-        echo "single process";
-        exit;
 
-        $menuItem = menu_items::whereMenuIdAndStep($menu->id,$step)->first();
+        $menuItem = ussd_menu_items::whereMenuIdAndStep($menu->id,$step)->first();
 
         if ($menuItem) {
             //update user data and next request and send back
             $user->menu_item_id = $menuItem->id;
             $user->menu_id = $menu->id;
             $user->progress = $step;
-            $user->session = 2;
+            $user->session = 1;
             $user->save();
             return $menuItem -> description;
 
