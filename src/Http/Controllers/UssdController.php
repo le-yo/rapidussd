@@ -62,14 +62,8 @@ class UssdController extends Controller
             //user authentication
             $message = '';
 
-            $realuser = User::whereEmail("0" . $no."@agin.com")->first();
-            if($realuser){
-                $response = self::getMenuAndItems($user,2);
-            }else{
-                $menu = ussd_menu::find(1);
-                $response = "Registration:".PHP_EOL.self::singleProcess($menu,$user,1);
-            }
-
+                $response = self::getMenuAndItems($user,1);
+        
             //get the home menu
             self::sendResponse($response, 1, $user);
         } else {
