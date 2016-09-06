@@ -16,8 +16,8 @@ Via Composer
 ``` bash
 $ composer require leyo/rapidussd
 
-##Publish migrations, controllers, models
-$ php artisan vendor:publish
+##Migrate the tables
+$ php artisan migrate --path=vendor/leyo/rapidussd/src/Http/migrations
 
 ##Add service provider
   "leyo\rapidussd\rapidussdServiceProvider::class"
