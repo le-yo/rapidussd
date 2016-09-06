@@ -21,7 +21,6 @@ $ php artisan vendor:publish
 
 ##Add service provider
   "leyo\rapidussd\rapidussdServiceProvider::class"
-
 ##migrate
 $ php artisan migrate
 
