@@ -34,8 +34,8 @@ class UssdController extends Controller
 
 
         $data = ['phone' => $phoneNumber, 'text' => $text, 'service_code' => $serviceCode, 'session_id' => $sessionId];
-        print_r($data);
-        exit;
+//        print_r($data);
+//        exit;
         //log USSD request
         ussd_logs::create($data);
 
