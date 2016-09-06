@@ -12,7 +12,7 @@ class CreateUssdLogsTable extends Migration
      */
     public function up()
     {
-        Schema::create('ussd_logs', function(Blueprint $table)
+        Schema::create('rapidussd_logs', function(Blueprint $table)
         {
             $table->increments('id');
             $table->string('phone');

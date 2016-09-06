@@ -12,7 +12,7 @@ class CreateUssdMenuItemsTable extends Migration
      */
     public function up()
     {
-        Schema::create('ussd_menu_items', function(Blueprint $table)
+        Schema::create('rapidussd_menu_items', function(Blueprint $table)
         {
             $table->increments('id');
             $table->integer('menu_id')->unsigned();

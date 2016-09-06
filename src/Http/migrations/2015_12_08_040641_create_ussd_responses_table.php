@@ -12,7 +12,7 @@ class CreateUssdResponsesTable extends Migration
      */
     public function up()
     {
-        Schema::create('ussd_responses', function(Blueprint $table)
+        Schema::create('rapidussd_responses', function(Blueprint $table)
         {
             $table->increments('id');
             $table->integer('user_id')->unsigned();

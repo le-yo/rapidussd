@@ -12,7 +12,7 @@ class CreateUssdUsersTable extends Migration
      */
     public function up()
     {
-        Schema::create('ussd_users', function (Blueprint $table) {
+        Schema::create('rapidussd_users', function (Blueprint $table) {
             $table->increments('id');
             $table->string('phone')->unique();
             $table->integer('session')->default(0);
