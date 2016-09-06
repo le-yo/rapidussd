@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ussd_logs extends Model {
 
-    protected $table = 'ussd_logs';
+    protected $table = 'rapidussd_logs';
 
     /**
      * The attributes that are mass assignable.
