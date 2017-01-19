@@ -18,7 +18,7 @@ class CreateUssdResponsesTable extends Migration
             $table->integer('user_id')->unsigned();
             $table->integer('menu_id')->unsigned();
             $table->integer('menu_item_id')->unsigned();
-            $table->string('response', 45);
+            $table->text('response');
             $table->timestamps();
         });
     }
