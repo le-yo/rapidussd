@@ -1,11 +1,11 @@
 # RapidUSSD
 
-[![Latest Version on Packagist][ico-version]][link-packagist]
-[![Software License][ico-license]](LICENSE.md)
-[![Build Status][ico-travis]][link-travis]
-[![Coverage Status][ico-scrutinizer]][link-scrutinizer]
-[![Quality Score][ico-code-quality]][link-code-quality]
-[![Total Downloads][ico-downloads]][link-downloads]
+[![Latest Stable Version](https://poser.pugx.org/leyo/rapidussd/v/stable)](https://packagist.org/packages/leyo/rapidussd)
+[![Total Downloads](https://poser.pugx.org/leyo/rapidussd/downloads)](https://packagist.org/packages/leyo/rapidussd)
+[![Latest Unstable Version](https://poser.pugx.org/leyo/rapidussd/v/unstable)](https://packagist.org/packages/leyo/rapidussd)
+[![License](https://poser.pugx.org/leyo/rapidussd/license)](https://packagist.org/packages/leyo/rapidussd)
+[![Monthly Downloads](https://poser.pugx.org/leyo/rapidussd/d/monthly)](https://packagist.org/packages/leyo/rapidussd)
+[![Daily Downloads](https://poser.pugx.org/leyo/rapidussd/d/daily)](https://packagist.org/packages/leyo/rapidussd)
 
 
 Laravel 5 package for rapid USSD prototyping and development
